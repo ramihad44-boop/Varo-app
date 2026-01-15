@@ -5,53 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VARO LIVE</title>
     <style>
-        body { background: #000; color: #d4af37; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 20px; }
-        .match-card { 
-            background: #111; 
-            border: 1px solid #d4af37; 
-            border-radius: 15px; 
-            margin: 15px auto; 
-            padding: 20px; 
-            max-width: 400px;
-            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.1);
-        }
-        .teams { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: #fff; }
-        .time { color: #d4af37; font-size: 1rem; background: #222; padding: 5px 10px; border-radius: 20px; display: inline-block; }
-        .league { color: #888; font-size: 0.8rem; margin-bottom: 10px; display: block; }
+        body { background: #000; color: #d4af37; font-family: sans-serif; text-align: center; padding: 20px; }
+        .match-card { background: #111; border: 1px solid #d4af37; border-radius: 15px; margin: 15px auto; padding: 15px; max-width: 400px; }
+        .teams { font-size: 1.1rem; color: #fff; font-weight: bold; }
+        .time { color: #d4af37; background: #222; padding: 5px 10px; border-radius: 20px; margin-top: 10px; display: inline-block; }
     </style>
 </head>
 <body>
-    <h1 style="color: #d4af37;">⚽ جدول VARO للمباريات</h1>
-    <div id="results">جاري جلب مباريات اليوم...</div>
+    <h1>⚽ جدول مباريات VARO</h1>
+    <div id="results">جاري جلب البيانات من المصدر البديل...</div>
 
     <script>
-        async function getVaroMatches() {
+        async function getMatches() {
             const display = document.getElementById('results');
-            // الرابط اللي إنت جبته مع إضافة /api في آخره
-            const myServer = "https://varo-app-nu.vercel.app/api";
+            // مصدر بديل (مباريات عالمية) للتأكد من نجاح الاتصال 100%
+            const url = "https://api.allorigins.win/get?url=" + encodeURIComponent("https://raw.githubusercontent.com/openfootball/football.json/master/2020-21/en.1.json");
 
             try {
-                const res = await fetch(myServer);
+                const res = await fetch(url);
                 const data = await res.json();
-                
-                if (data && data.length > 0) {
-                    display.innerHTML = "";
-                    data.forEach(m => {
-                        display.innerHTML += `
-                            <div class="match-card">
-                                <span class="league">اليوم</span>
-                                <div class="teams">${m.home_team_name} 🆚 ${m.away_team_name}</div>
-                                <div class="time">⏰ ${m.match_time}</div>
-                            </div>`;
-                    });
-                } else {
-                    display.innerHTML = "📭 لا يوجد مباريات حالياً في الجدول.";
-                }
+                const content = JSON.parse(data.contents);
+                const matches = content.rounds[0].matches.slice(0, 10); // عرض أول 10 مباريات
+
+                display.innerHTML = "";
+                matches.forEach(m => {
+                    display.innerHTML += `
+                        <div class="match-card">
+                            <div class="teams">${m.team1} 🆚 ${m.team2}</div>
+                            <div class="time">⏰ ${m.date}</div>
+                        </div>`;
+                });
             } catch (e) {
-                display.innerHTML = "⚠️ السيرفر شغال بس المصدر (جدول) معلق.. جرب كمان شوي!";
+                display.innerHTML = "❌ في مشكلة عامة بالإنترنت، جرب تحدث الصفحة.";
             }
         }
-        getVaroMatches();
+        getMatches();
     </script>
 </body>
 </html>
